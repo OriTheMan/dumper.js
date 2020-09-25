@@ -10,10 +10,18 @@ const {red, cyan, blue, black, green, magenta, bold} = require('kleur');
  */
 class Dumper {
   /**
-   * @param {int} indentCount Number of spaces to indent the object with
+   * @param {object} opts
    */
-  constructor(indentCount = 4) {
-    this.spaces = ' '.repeat(indentCount);
+  constructor(opts) {
+    let defaults = {
+      indent: 4,
+      depth: false
+    };
+
+    let options = Object.assign({}, defaults, opts);
+    this.spaces = ' '.repeat(options.indent); //Number of spaces to indent the object with
+    this.currentDepth = 0;
+    this.depth = options.depth; // depth to show
   }
 
   /**
@@ -76,7 +84,13 @@ class Dumper {
       case 'array':
       case 'object':
         displayType = '';
-        displayValue = this.generateDump(originalValue, `${indent}${this.spaces}`);
+        if(this.depth && this.currentDepth == this.depth) {
+          displayValue = `${bold().black('object')} (size=${Object.keys(originalValue).length})`;
+        } else {
+          this.incrementDepth()
+          displayValue = this.generateDump(originalValue, `${indent}${this.spaces}`);
+          this.decrementDepth()
+        }
         break;
       case 'boolean':
         displayType = 'boolean';
@@ -134,6 +148,21 @@ class Dumper {
     }
 
     return `${startWith + keyPart} => ${valuePart}`;
+  }
+  
+  /**
+   * Increment currentDepth
+   */
+  incrementDepth() {
+    if(this.depth)
+      this.currentDepth++
+  }
+  /**
+   * Decrement currentDepth
+   */
+  decrementDepth() {
+    if(this.depth)
+      this.currentDepth--
   }
 }
 
